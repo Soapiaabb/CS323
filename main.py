@@ -22,10 +22,11 @@ class Calculator:
         self.root.geometry("360x520")
         self.root.configure(bg="#dcdcdc")
         self.root.resizable(False, False)
-
+        
         self.first = None
         self.operator = None
         self.current = ""
+        self.just_evaluated = False
 
         self.create_fonts()
         self.create_display()
@@ -73,7 +74,9 @@ class Calculator:
                 r += 1
                 c = 0
 
+        #Para sa reset
         self.make_button(frame, "RESET", "#e74c3c", 4, 0, 2)
+        #Para sa ekwals
         self.make_button(frame, "=", "#3b44f6", 4, 2, 2)
 
     def make_button(self, parent, text, bg, r, c, span=1):
@@ -92,24 +95,62 @@ class Calculator:
 
     def press(self, key):
         if key.isdigit() or key == ".":
-            self.current += key
+            # Start decimal properly
+            if key == "." and self.current == "":
+                self.current = "0."
+
+            # Only reset AFTER = if no operator is selected
+            elif self.just_evaluated and self.operator is None:
+                self.first = None
+                self.result_label.config(text="0")
+
+            self.just_evaluated = False
+            self.current += key if key != "." else ""
             self.update()
 
+
         elif key in {"+", "-", "x", "/"}:
-            if self.current:
-                self.first = float(self.current)
+            # Change operator if wala pay second operand
+            if self.first is not None and self.current == "":
                 self.operator = key
-                self.current = ""
                 self.update()
+                return
+
+            if self.just_evaluated:
+                self.operator = key
+                self.just_evaluated = False
+                self.update()
+                return
+
+            if self.current:
+                try:
+                    if self.first is None:
+                        self.first = float(self.current)
+                    else:
+                        self.first = self.calculate(
+                            self.first, float(self.current), self.operator
+                        )
+                    self.operator = key
+                    self.current = ""
+                    self.update()
+                except Exception as e:
+                    self.show_error(e)
+
 
         elif key == "=":
             if self.first is not None and self.operator and self.current:
-                second = float(self.current)
-                result = self.calculate(self.first, second, self.operator)
-                self.result_label.config(text=result)
-                self.first = None
-                self.operator = None
-                self.current = ""
+                try:
+                    result = self.calculate(
+                        self.first, float(self.current), self.operator
+                    )
+                    self.result_label.config(text=result)
+                    self.first = result if isinstance(result, (int, float)) else None
+                    self.operator = None
+                    self.current = ""
+                    self.just_evaluated = True
+                except Exception as e:
+                    self.show_error(e)
+
 
         elif key == "DEL":
             self.current = self.current[:-1]
@@ -118,8 +159,8 @@ class Calculator:
         elif key == "RESET":
             self.first = self.operator = None
             self.current = ""
-            self.result_label.config(text="0")
             self.expr_label.config(text="")
+            self.result_label.config(text="0")
 
     def calculate(self, a, b, op):
         if op == "+":
@@ -129,13 +170,21 @@ class Calculator:
         if op == "x":
             return multiplication(a, b)
         if op == "/":
-            return division(a, b)
+            result = division(a, b)
+            if isinstance(result, str):
+                raise ValueError(result)
+            return result
+
+    def show_error(self, error):
+        self.expr_label.config(text="Error")
+        self.result_label.config(text=str(error))
+        self.first = self.operator = None
+        self.current = ""
 
     def update(self):
-        expr = f"{self.first or ''} {self.operator or ''} {self.current}"
+        expr = f"{self.first if self.first is not None else ''} {self.operator or ''} {self.current}"
         self.expr_label.config(text=expr.strip())
         self.result_label.config(text=self.current or "0")
-
 
 if __name__ == "__main__":
     root = tk.Tk()
