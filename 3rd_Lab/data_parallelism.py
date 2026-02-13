@@ -76,3 +76,56 @@ def run_parallel_payroll(emp_list=None):
 
     return results
 
+def display_results(results):
+    print(f"\n{'Employee':<12} {'Gross Salary':>14} {'SSS':>10} {'PhilHealth':>12} "
+          f"{'Pag-IBIG':>10} {'W/Tax':>10} {'Total Deduction':>16} {'Net Salary':>12}")
+    print("-" * 100)
+
+    for r in results:
+        print(
+            f"{r['name']:<12} "
+            f"₱{r['gross_salary']:>13,.2f} "
+            f"₱{r['sss']:>9,.2f} "
+            f"₱{r['philhealth']:>11,.2f} "
+            f"₱{r['pagibig']:>9,.2f} "
+            f"₱{r['tax']:>9,.2f} "
+            f"₱{r['total_deduction']:>15,.2f} "
+            f"₱{r['net_salary']:>11,.2f}"
+        )
+
+    print("-" * 100)
+
+    total_gross      = sum(r["gross_salary"]    for r in results)
+    total_deductions = sum(r["total_deduction"] for r in results)
+    total_net        = sum(r["net_salary"]       for r in results)
+
+    print(
+        f"{'TOTAL':<12} "
+        f"₱{total_gross:>13,.2f} "
+        f"{'':>10} {'':>12} {'':>10} {'':>10} "
+        f"₱{total_deductions:>15,.2f} "
+        f"₱{total_net:>11,.2f}"
+    )
+    print("=" * 100)
+
+    print("\n[Process Assignment (optional trace)]")
+    for r in results:
+        print(f"  {r['name']:<10} → handled by: {r['process']}")
+
+    print("\n[Done] All payroll computations completed in parallel.\n")
+
+# Main Entry Point
+
+def main():
+    print("=" * 60)
+    print("  PART B: DATA PARALLELISM — ProcessPoolExecutor")
+    print("=" * 60)
+    print(f"  Employees to process : {len(employees)}")
+    print(f"  CPU cores available  : {multiprocessing.cpu_count()}")
+    print("=" * 60)
+
+    results = run_parallel_payroll()
+    display_results(results)
+
+if __name__ == "__main__":
+    main()
