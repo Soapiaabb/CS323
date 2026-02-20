@@ -25,3 +25,11 @@ def process_request(request):
 
     elif req_type == "support":
         time.sleep(0.2)
+
+# Sequential nga part
+def run_sequential(requests):
+    start = time.time()
+    for req in requests:
+        process_request(req)
+    return time.time() - start
+
