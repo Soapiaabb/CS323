@@ -41,4 +41,14 @@ def run_parallel(requests, workers=3):
         executor.map(process_request, requests)
     return time.time() - start
 
+if __name__ == "__main__":
+    requests = generate_requests(30)
 
+    seq_time = run_sequential(requests)
+    par_time = run_parallel(requests)
+
+    speedup = seq_time / par_time 
+
+    print(f"Sequential Time: {seq_time:.4f} seconds")
+    print(f"Parallel Time:   {par_time:.4f} seconds")
+    print(f"Speedup:         {speedup:.2f}x")
