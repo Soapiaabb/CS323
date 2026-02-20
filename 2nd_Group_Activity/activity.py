@@ -1,6 +1,7 @@
 import threading
 import random
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 # Simulated shared resources
 customer_db = {}
@@ -32,4 +33,12 @@ def run_sequential(requests):
     for req in requests:
         process_request(req)
     return time.time() - start
+
+# Parallel version
+def run_parallel(requests, workers=3):
+    start = time.time()
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        executor.map(process_request, requests)
+    return time.time() - start
+
 
