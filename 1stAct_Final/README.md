@@ -65,6 +65,6 @@ In general, parallel is better when working with very large data since it reduce
 
 ### Benchmark GIF
 
-![](benchmark.gif)
+![](benchmark-fix.gif)
 
 ---
