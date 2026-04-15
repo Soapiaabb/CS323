@@ -62,3 +62,9 @@ I also realize that parallel processing have extra work like handling multiple t
 In general, parallel is better when working with very large data since it reduce the time needed. But for small data, doing it sequential is already okay and sometimes even better because there is no extra overhead.
 
 ---
+
+### Benchmark GIF
+
+![](benchmark.gif)
+
+---
