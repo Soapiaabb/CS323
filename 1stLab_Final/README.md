@@ -21,3 +21,6 @@ Before adding the lock, things got a bit messy. If two workers finish their `sle
 
 **6. How did you ensure consistent results when using multiple processes?**
 We wrapped the append operation in a `with lock:` block. This acts like a bouncer. Only one process can hold the lock at a time, so it guarantees that workers line up to write their results sequentially. No more data loss!
+
+## Execution Demonstration
+![Execution GIF](execution.gif)
