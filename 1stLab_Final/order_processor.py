@@ -3,11 +3,12 @@ from multiprocessing import Manager, Lock
 import time
 import random
 
-manager = Manager()
-shared_orders = manager.list()
-lock = Lock()
-
 def main():
+    # Initialize the manager and lock inside main to prevent multiprocessing recursion errors
+    manager = Manager()
+    shared_orders = manager.list()
+    lock = Lock()
+
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
