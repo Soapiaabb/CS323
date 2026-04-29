@@ -1,10 +1,11 @@
 from mpi4py import MPI
-from multiprocessing import Manager
+from multiprocessing import Manager, Lock
 import time
 import random
 
 manager = Manager()
 shared_orders = manager.list()
+lock = Lock()
 
 def main():
     comm = MPI.COMM_WORLD
@@ -13,7 +14,7 @@ def main():
 
     if size < 2:
         if rank == 0:
-            print("Need at least 2 processes")
+            print("Please run with at least 2 processes (e.g., mpirun -np 4 python order_processor.py)")
         return
 
     if rank == 0:
@@ -27,17 +28,19 @@ def main():
             {'id': 7, 'item': 'Chair'}
         ]
         
+        print(f"Master (Process {rank}) generating {len(orders)} orders...")
+        
         num_workers = size - 1
         for i, order in enumerate(orders):
-            worker = (i % num_workers) + 1
-            comm.send(order, dest=worker, tag=1)
+            worker_rank = (i % num_workers) + 1
+            comm.send(order, dest=worker_rank, tag=1)
             
         for i in range(1, size):
             comm.send(None, dest=i, tag=1)
             
         comm.Barrier()
         
-        # gather hack because of mpirun isolation
+        # We gather lists here since Manager() is isolated per MPI process
         all_completed = comm.gather(list(shared_orders), root=0)
         final_list = []
         for lst in all_completed[1:]:
@@ -56,8 +59,9 @@ def main():
             print(f"Process {rank} received Order {order['id']}: {order['item']}")
             time.sleep(random.uniform(0.5, 1.5))
             
-            # writing without a lock!
-            shared_orders.append(order)
+            with lock:
+                shared_orders.append(order)
+                
             print(f"Process {rank} finished Order {order['id']}")
             
         comm.Barrier()
